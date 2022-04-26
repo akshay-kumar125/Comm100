@@ -1,0 +1,14 @@
+server: hub-cloud.browserstack.com
+user: <username>
+key: <Key>
+
+common_caps:
+  build: capybara-browserstack
+  browserstack.debug: true
+  browserstack.use_w3c: true
+  browserstack.selenium_version: 3.14.0
+
+browser_caps:
+- browser: chrome
+
+  

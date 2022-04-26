@@ -1,0 +1,17 @@
+# List of profile you can pass when invoking Cucumber 
+# Ex : 
+#   $ cucumber --profile=phantomjs
+#
+# For Info : 
+#   BASE_URL refer to #{@base_url} in the env.rb file
+#   --require : xyz refer to the directory where to find the .rb file
+#   --color   : refer to the output in color in the command prompt
+#   features or features_v2 : Refer to the directory where to fin the .feature file
+#   EXEC_PLATFORM refer to the platform we wanted to launch the tests e.g. mobile/desktop
+#   SERVER refer to server prod/uat/qa)
+
+default:        --require features --color features SERVER=uat
+linux:          --require features --color EXEC_PLATFORM=linux
+desktop:        --require features --color EXEC_PLATFORM=desktop
+iphone:         --require features --color User_Agent=chrome_iphone EXEC_PLATFORM=mobile
+android:        --require features --color User_Agent=chrome_android EXEC_PLATFORM=mobile

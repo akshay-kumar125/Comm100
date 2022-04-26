@@ -1,0 +1,39 @@
+version: '3.1'
+
+services:
+  selenium-hub:
+    image: selenium/hub:latest
+    ports:
+      - 4444
+
+  chrome:
+    image: selenium/node-chrome:latest
+    depends_on:
+      - selenium-hub
+    environment:
+      NODE_PORT: 5955
+      HUB_HOST: selenium-hub
+      HUB_PORT: 4444
+
+  firefox:
+    image: selenium/node-firefox:latest
+    depends_on:
+      - selenium-hub
+    environment:
+      NODE_PORT: 5855
+      HUB_HOST: selenium-hub
+      HUB_PORT: 4444
+
+  app:
+    build: .
+    command: ./lib/prepare.sh
+    environment:
+      GEM_HOME: /rubygems
+      HUB_HOST: selenium-hub
+      HUB_PORT: 4444
+    volumes:
+      - .:/app
+      - app-gemcache:/rubygems
+
+volumes:
+  app-gemcache:

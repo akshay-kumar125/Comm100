@@ -1,0 +1,123 @@
+# Ruby CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-ruby/ for more details
+#
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:2.5.1-node-browsers
+        environment:
+          GEM_HOME: /rubygems
+          HUB_HOST: localhost
+          HUB_PORT: 4444
+
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+      - image: selenium/hub:latest
+      - image: selenium/node-chrome:latest
+        environment:
+          NODE_PORT: 5955
+          HUB_HOST: localhost
+          HUB_PORT: 4444
+      - image: selenium/node-firefox:3.141.59-neon
+        environment:
+          NODE_PORT: 5855
+          HUB_HOST: localhost
+          HUB_PORT: 4444
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "Gemfile.lock" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run:
+          name: install dependencies
+          command: |
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+      - save_cache:
+          paths:
+            - ./vendor/bundle
+          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+
+      - run:
+          name: Wait for selenium/hub
+          command: dockerize -wait tcp://localhost:4444 -timeout 1m
+
+      # run account tests!
+      - run:
+          name: run account related scenarios
+          command: |
+            mkdir -p ~/cucumber/account
+            bundle exec cucumber --tag @account SERVER=uat --format html --out ~/cucumber/account/automation_report_account.html --format pretty
+          when: always
+
+      # save more artifacts
+      - run:
+          name: copy screeshots
+          command: |
+            cp -r screenshots ~/cucumber/account/screenshots
+            rm -rf screenshots/*
+          when: always
+
+      # run forgot password tests!
+      - run:
+          name: run forgot_password related scenarios
+          command: |
+            mkdir -p ~/cucumber/forgot_password
+            bundle exec cucumber --tag @forgot_password SERVER=uat --format html --out ~/cucumber/forgot_password/automation_report_forgot_password.html --format pretty
+          when: always
+
+      # save more artifacts
+      - run:
+          name: copy screeshots
+          command: |
+            cp -r screenshots ~/cucumber/forgot_password/screenshots
+            rm -rf screenshots/*
+          when: always
+
+      # run myprofile tests!
+      - run:
+          name: run myprofile related scenarios
+          command: |
+            mkdir -p ~/cucumber/myprofile
+            bundle exec cucumber --tag @myprofile --format html --out ~/cucumber/myprofile/automation_report_my_profile.html --format pretty
+          when: always
+
+      # save more artifacts
+      - run:
+          name: copy screeshots
+          command: |
+            cp -r screenshots ~/cucumber/myprofile/screenshots
+            rm -rf screenshots/*
+          when: always
+
+      # run news tests!
+      - run:
+          name: run news related scenarios
+          command: |
+            mkdir -p ~/cucumber/news
+            bundle exec cucumber --tag @news SERVER=uat --format html --out ~/cucumber/news/automation_report_news.html --format pretty
+          when: always
+
+      # save more artifacts
+      - run:
+          name: copy screeshots
+          command: |
+            cp -r screenshots ~/cucumber/news/screenshots
+            rm -rf screenshots/*
+          when: always
+
+      # collect reports
+      - store_test_results:
+          path: ~/cucumber
+      - store_artifacts:
+          path: ~/cucumber
